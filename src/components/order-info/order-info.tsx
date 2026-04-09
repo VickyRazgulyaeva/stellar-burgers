@@ -14,7 +14,7 @@ import {
 
 export const OrderInfo: FC = () => {
   // /** TODO: взять переменные orderData и ingredients из стора */
- 
+
   const { number } = useParams();
   const dispatch = useDispatch();
 

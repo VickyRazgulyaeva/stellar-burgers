@@ -27,7 +27,6 @@ import { getUser } from '../../services/slices/userSlice';
 import { Preloader } from '@ui';
 import { selectIngredientsLoading } from '../../services/selectors';
 
-
 //   /** TODO: взять переменные из стора */
 
 const App: FC = () => {
