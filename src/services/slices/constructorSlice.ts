@@ -1,4 +1,9 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSlice,
+  nanoid,
+  PayloadAction
+} from '@reduxjs/toolkit';
 import { orderBurgerApi } from '@api';
 import { TConstructorIngredient, TIngredient } from '@utils-types';
 import { RootState } from '../store';
@@ -31,7 +36,7 @@ export const createOrder = createAsyncThunk<
   const { bun, ingredients } = getState().burgerConstructor.constructorItems;
   const ids = [
     bun?._id,
-    ...ingredients.flatMap((item) => Array(item.count).fill(item._id)),
+    ...ingredients.map((item) => item._id),
     bun?._id
   ].filter(Boolean) as string[];
   const response = await orderBurgerApi(ids);
@@ -47,39 +52,20 @@ const constructorSlice = createSlice({
         if (action.payload.type === 'bun') {
           state.constructorItems.bun = action.payload;
         } else {
-          const existingIngredient = state.constructorItems.ingredients.find(
-            (item) => item._id === action.payload._id
-          );
-
-          if (existingIngredient) {
-            existingIngredient.count += 1;
-          } else {
-            state.constructorItems.ingredients.push(action.payload);
-          }
+          state.constructorItems.ingredients.push(action.payload);
         }
       },
       prepare: (ingredient: TIngredient) => ({
         payload: {
           ...ingredient,
-          count: 1
+          id: nanoid()
         }
       })
     },
     removeIngredient: (state, action: PayloadAction<string>) => {
-      const ingredient = state.constructorItems.ingredients.find(
-        (item) => item._id === action.payload
-      );
-
-      if (!ingredient) return;
-
-      if (ingredient.count > 1) {
-        ingredient.count -= 1;
-        return;
-      }
-
       state.constructorItems.ingredients =
         state.constructorItems.ingredients.filter(
-          (item) => item._id !== action.payload
+          (item) => item.id !== action.payload
         );
     },
     moveIngredientUp: (state, action: PayloadAction<number>) => {
