@@ -1,24 +1,21 @@
 describe('Страница конструктора', () => {
-  const addBun = () =>
-    cy
-      .contains('Краторная булка N-200i')
-      .parents('li')
-      .contains('Добавить')
-      .click();
 
-  const addMain = () =>
-    cy
-      .contains('Биокотлета из марсианской Магнолии')
-      .parents('li')
-      .contains('Добавить')
-      .click();
-
-  const openIngredientModal = () => {
-    cy.contains('Краторная булка N-200i').click();
-    cy.contains('Детали ингредиента').should('exist');
-    cy.location('pathname').should('include', '/ingredients/');
+  const addIngredient = (ingredientName: string) => {
+    cy.contains('li', ingredientName).within(() => {
+      cy.contains('button', 'Добавить').click();
+    });
   };
 
+  const addBun = () => addIngredient('Краторная булка N-200i');
+
+  const addMain = () => addIngredient('Биокотлета из марсианской Магнолии');
+
+  const openIngredientModal = () => {
+    cy.contains('li', 'Краторная булка N-200i').find('a').click();
+    cy.contains('h3', 'Детали ингредиента').should('exist');
+    cy.location('pathname').should('include', '/ingredients/');
+  };
+ 
   beforeEach(() => {
     cy.intercept('GET', '**/api/ingredients', { fixture: 'ingredients.json' }).as(
       'getIngredients'
@@ -51,14 +48,20 @@ describe('Страница конструктора', () => {
   it('добавляет булку в конструктор', () => {
     addBun();
 
-    cy.contains('Краторная булка N-200i (верх)').should('exist');
-    cy.contains('Краторная булка N-200i (низ)').should('exist');
+    cy.get('[data-cy=burger-constructor]')
+      .contains('Краторная булка N-200i (верх)')
+      .should('exist');
+    cy.get('[data-cy=burger-constructor]')
+      .contains('Краторная булка N-200i (низ)')
+      .should('exist');
   });
 
   it('добавляет начинку в конструктор', () => {
     addMain();
 
-    cy.contains('Биокотлета из марсианской Магнолии').should('exist');
+    cy.get('[data-cy=burger-constructor]')
+      .contains('Биокотлета из марсианской Магнолии')
+      .should('exist');
   });
 
   it('открывает модальное окно ингредиента', () => {
@@ -85,7 +88,7 @@ describe('Страница конструктора', () => {
     cy.contains('Оформить заказ').click();
     cy.wait('@createOrder');
 
-    cy.contains('12345').should('exist');
+    cy.contains('h2', /^12345$/).should('exist');
   });
 
   it('закрывает модалку заказа и очищает конструктор', () => {
@@ -94,10 +97,10 @@ describe('Страница конструктора', () => {
 
     cy.contains('Оформить заказ').click();
     cy.wait('@createOrder');
-    cy.contains('12345').should('exist');
+    cy.contains('h2', /^12345$/).should('exist');
 
     cy.get('body').type('{esc}');
-    cy.contains('12345').should('not.exist');
+    cy.contains('h2', /^12345$/).should('not.exist');
 
     cy.contains('Выберите булки').should('exist');
     cy.contains('Выберите начинку').should('exist');
